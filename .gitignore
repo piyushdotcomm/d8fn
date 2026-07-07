@@ -1,0 +1,31 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary and Scratch files
+scratch/
+*.log
+.DS_Store
+
+# Large data and checkpoint files
+data/
+results/weights/
+submissions/
+*.zip
+*.tar.gz
+*.pt
+*.pth
+*.h5
+
+# Jupyter Notebook
+.ipynb_checkpoints
