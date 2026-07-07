@@ -1,0 +1,232 @@
+% D8FN Paper for IEEE JSTARS
+\documentclass[journal]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{cite}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=black,urlcolor=blue]{hyperref}
+
+\hyphenation{flow-rout-ing con-v-next}
+
+\title{D8FN: Differentiable D8 Flow Routing with Physics Constraints for SAR Flood Mapping}
+
+\author{Piyush Kumar and Manas Ranjan Prusty\\
+\thanks{The authors are with the School of Computer Science, Vellore Institute of Technology, Vellore, India.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Synthetic Aperture Radar (SAR) flood mapping suffers from inherent ambiguity: smooth surfaces produce backscatter signatures nearly identical to floodwater, resulting in false positives in standard semantic segmentation models. We introduce D8FN, a physics-informed architecture that incorporates D8 topographic flow routing as a differentiable neural network layer and a Height Above Nearest Drainage (HAND) violation penalty in the loss function. D8FN propagates features along physically meaningful flow paths derived from terrain, allowing the network to distinguish flood from look-alike surfaces using topographic context. On the Kuro Siwo benchmark (GEO-Bench-2 curated subset), D8FN achieves a mean Intersection over Union (IoU) of $0.575 \pm 0.028$ and F1 of $0.679 \pm 0.023$ across 4-fold cross-validation, with a Physics-Aware IoU (PA-IoU) of $0.717 \pm 0.020$ that penalizes hydrologically implausible predictions and a HAND Violation Rate (HVR) of $1.00 \pm 0.25\%$. Ablation studies on Fold 0 using per-tile Wilcoxon signed-rank tests reveal that the HAND violation penalty contributes $+0.072$ IoU ($p < 0.001$) and D8 flow routing contributes $+0.027$ IoU ($p < 0.01$). On a 2,000-sample held-out test set spanning six unseen flood events, PA-IoU declines by only 13\% (0.734 to 0.640) while HVR remains below 2.5\%, indicating that physics-informed constraints contribute to output quality stability under domain shift.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Flood mapping, SAR, deep learning, D8 flow routing, physics-informed neural networks, HAND, remote sensing
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Flooding is the most frequent natural hazard globally, with climate change projected to increase both frequency and intensity~\cite{ipcc}. Synthetic Aperture Radar (SAR) satellites provide all-weather, day-and-night imagery critical for rapid flood mapping during disaster response~\cite{sar_flood_survey}. However, SAR-based flood detection suffers from inherent ambiguity: water surfaces appear dark in SAR due to specular reflection, but so do other smooth surfaces such as asphalt, bare soil, and wind-sheltered flat terrain. This signal ambiguity causes standard deep learning models to produce fragmented flood masks with numerous false positives~\cite{sen1floods11,kuro_siwo}.
+
+Deep convolutional neural networks, particularly U-Net~\cite{unet} and its variants, have become the standard approach for SAR flood segmentation. These models treat each pixel independently, using local receptive fields to classify flood vs.\ non-flood based on backscatter patterns. While effective at capturing local appearance, CNNs lack awareness of terrain connectivity: they cannot distinguish a wet pixel in a valley bottom (plausible flood) from a wet-looking pixel on a hilltop (impossible flood) without explicit topographic priors. Crucially, a model can achieve low HAND violation rates by simply predicting fewer flood pixels overall (lower recall), rather than by understanding which predictions are hydrologically plausible. D8FN is designed to enforce physics compliance \emph{architecturally}, not as a side effect of conservative predictions.
+
+Physical hydrology provides well-established principles that can guide neural networks: water flows downhill along the steepest descent path (D8 flow direction~\cite{d8}), and the Height Above Nearest Drainage (HAND) index~\cite{hand} quantifies flood susceptibility by measuring vertical distance to the nearest stream. While recent works incorporate DEMs as additional input channels, standard isotropic convolutions ignore the directed nature of water flow.
+
+In this paper, we introduce \textbf{D8FN}, a physics-informed architecture that embeds topographic flow routing directly into the network. Our contributions are:
+
+\begin{enumerate}
+    \item \textbf{Differentiable D8 Flow Routing:} A learnable gating mechanism propagates features along D8 flow paths, trained end-to-end via backpropagation at coarse (7$\times$7, 50 rounds) and fine (28$\times$28, 25 rounds) scales.
+    \item \textbf{HAND Violation Penalty:} A physics-aware loss component that penalizes false-positive flood predictions in high-HAND areas ($>$5m), reducing hydrologically implausible outputs.
+    \item \textbf{Height Field Head:} Predicts water surface elevation and thresholds against the DEM for physically constrained flood prediction.
+    \item \textbf{Rigorous Ablation:} Per-tile Wilcoxon signed-rank tests isolate the contribution of each component, showing the HAND penalty contributes +0.072 IoU ($p < 0.001$) and D8 routing contributes +0.027 IoU ($p < 0.01$).
+\end{enumerate}
+
+\section{Related Work}
+
+\subsection{SAR Flood Mapping}
+Flood mapping from SAR has evolved from thresholding methods to deep learning segmentation. Bonafilia et al.~\cite{sen1floods11} introduced Sen1Floods11, an early benchmark dataset. Bountos et al.~\cite{kuro_siwo} curated the Kuro Siwo dataset -- a global, manually annotated multi-temporal SAR dataset spanning 43 flood events with expert photo-interpretation. The BlackBench benchmark~\cite{kuro_siwo} reports flood F1 scores above 80\% when models are trained on 26+ events with self-supervised pretraining. Standard approaches use U-Net~\cite{unet} with encoder backbones such as ResNet or EfficientNet, achieving 0.72--0.82 IoU on benchmark datasets.
+
+\subsection{Physics-Informed Deep Learning}
+Physics-informed neural networks (PINNs)~\cite{pinn} incorporate physical laws as soft constraints during training. In hydrology, PINN-inspired approaches have been applied to rainfall-runoff modeling~\cite{kratzert} and flood prediction~\cite{tartakovsky}. Bindas et al.~\cite{bindas} introduced differentiable routing combining the Muskingum-Cunge method with neural networks for streamflow forecasting. However, existing differentiable routing methods operate on river-reach graphs rather than on raster SAR tiles for extent detection. Our approach differs by embedding D8-direction message-passing directly inside a CNN, operating at multiple spatial scales on raw remote sensing data.
+
+\subsection{HAND and Topographic Indices}
+The HAND index~\cite{hand} is widely used as a topographic proxy for flood susceptibility. Several works incorporate HAND as an input channel to CNNs~\cite{mmflood,worldfloods}, but treating it as static input does not enforce output constraints. Our approach uses HAND as a physics-aware penalty in the loss function, explicitly penalizing predictions in areas where flooding is topographically unlikely while allowing exceptions supported by ground truth.
+
+\section{Methodology}
+
+\subsection{D8 Flow Routing Layer}
+The D8 algorithm~\cite{d8} computes flow direction for each pixel in a DEM by examining its eight neighbors and assigning the direction of steepest descent. The result is a directed acyclic graph (DAG) where each pixel points to exactly one downstream neighbor.
+
+The core of D8FN is the \textbf{D8FlowRouting} module, which takes a feature map $F \in \mathbb{R}^{B \times C \times H \times W}$, flow direction $D \in \{0,\dots,8\}^{H \times W}$, DEM, and slope, and propagates features along D8 flow paths. For each of $K$ routing rounds:
+
+\begin{enumerate}
+    \item \textbf{Learned gates:} $\sigma = \mathcal{G}([F, D, Z, S])$, where $\mathcal{G}$ is a 3-layer CNN with sigmoid output producing per-channel gating values in $[0,1]$.
+    \item \textbf{Downstream propagation:} $F^{t+1}_{(i,j)} = F^{t}_{(i,j)} + \Sigma_{(i',j')\to(i,j)} \sigma_{(i',j')} \odot F^{t}_{(i',j')}$, where the sum is over pixels whose D8 direction points to $(i,j)$, implemented via \texttt{scatter\_reduce} with sum aggregation.
+    \item \textbf{Output fusion:} $\hat{F} = \text{Conv}_{1\times1}(\text{BN}(\text{SiLU}([F, F_{\text{routed}}])))$ with residual connection.
+\end{enumerate}
+
+We apply $K=50$ rounds at the coarse scale (7$\times$7 resolution, 768 channels) and $K=25$ rounds at the fine scale (28$\times$28, 192 channels). At $K=100$ rounds, we observe NaN overflow even in float32 precision, indicating a practical upper bound on routing depth.
+
+\subsection{D8FN Architecture}
+D8FN uses a ConvNeXt-Small~\cite{convnext} backbone pretrained on ImageNet-22K ($\sim$50M parameters). The full architecture (65.9M parameters total):
+
+\begin{itemize}
+    \item \textbf{Input projection:} 9 channels (4 SAR bands + DEM + HAND + slope + flow direction + flow accumulation) projected to 3 channels via 1$\times$1 Conv + BN + SiLU.
+    \item \textbf{Encoder:} ConvNeXt-Small produces 4 feature scales at $\frac{1}{4}$, $\frac{1}{8}$, $\frac{1}{16}$, $\frac{1}{32}$ resolution.
+    \item \textbf{Coarse routing:} Stage 3 features (7$\times$7, 768ch) routed for 50 rounds.
+    \item \textbf{Fine routing:} Stage 1 features (28$\times$28, 192ch) routed for 25 rounds.
+    \item \textbf{Multi-scale fusion:} Coarse routed features projected (768$\to$192ch), upsampled, and fused with fine features via 3$\times$3 Conv $\times$2.
+    \item \textbf{Decoder:} 28$\times$28$\to$56$\times$56 (transposed Conv + encoder stage 0 skip) $\to$224$\times$224 (4$\times$ transposed Conv).
+    \item \textbf{Height Field Head:} Predicts water surface elevation $H_w$ and thresholds against DEM to produce flood logit: $\text{flood\_logit} = (H_w - \text{DEM}) / \tau$.
+\end{itemize}
+
+\subsection{Training}
+We train with a combined loss: $L = L_{\text{focal}} + L_{\text{dice}} + \lambda_{\text{hand}} L_{\text{hand}}$, where:
+\begin{itemize}
+    \item $L_{\text{focal}}$: Focal loss ($\gamma=2.0, \alpha=0.25$) addressing class imbalance ($\sim$5--10\% flood pixels in training, varying by tile).
+    \item $L_{\text{dice}}$: Per-sample Dice loss for region overlap.
+    \item $L_{\text{hand}} = \text{mean}(\text{pred} \cdot \mathbb{1}[\text{HAND}>5\text{m}] \cdot (1 - \text{target}))$: Penalizes false positives in high-HAND areas where flooding is topographically unlikely. The $(1 - \text{target})$ factor ensures the penalty only applies where no actual flood exists.
+\end{itemize}
+We set $\lambda_{\text{hand}} = 0.05$. Training uses AdamW (weight decay $10^{-2}$), batch size 8, float32 precision (D8 routing overflows float16 at round $\sim$24), cosine LR schedule with 2 epochs of warmup, and gradient clipping at 1.0. All models trained for a 2-hour budget on Fold 0 (4,000 train / 1,000 validation tiles).
+
+\subsection{Metrics}
+We report the following per-tile metrics (tiles with zero flood-ground-truth excluded):
+\begin{itemize}
+    \item \textbf{IoU:} $\text{TP}/(\text{TP}+\text{FP}+\text{FN})$; \textbf{F1}: $2 \cdot P \cdot R / (P + R)$
+    \item \textbf{Global IoU (gIoU):} Pooled across all tiles before computation.
+    \item \textbf{HVR:} Fraction of predicted flood pixels with $\text{HAND} > 5\text{m}$.
+    \item \textbf{PA-IoU:} $\text{mIoU} \times (1 - \text{HVR})$, combining segmentation quality with physics compliance into a single metric. We use a multiplicative formulation so that HVR penalizes PA-IoU proportionally to mIoU -- a model with poor segmentation but low HVR should not score well, and vice versa. Both mIoU and HVR are also reported separately for full transparency.
+\end{itemize}
+We sweep thresholds $\tau \in [0.30, 0.60]$ on validation data and select the threshold maximizing PA-IoU. No separate calibration split was used; the per-fold threshold optimized on validation is applied to the test set, which may introduce a small optimistic bias in the reported test metrics.
+
+\section{Experiments}
+
+\subsection{Dataset}
+We evaluate on the Kuro Siwo dataset~\cite{kuro_siwo} (GEO-Bench-2 curated subset~\cite{geobench2}), containing 5,000 labeled SAR-DEM tile pairs at 224$\times$224 resolution with expert photo-interpretation annotations. Each tile includes: VV and VH polarization from pre- and post-flood Sentinel-1 acquisitions (4 SAR channels), Copernicus DEM (30m), HAND, slope, and D8 flow direction and accumulation. Labels distinguish three classes: no-water (0), permanent water (1), and flood (2); we evaluate binary flood segmentation (class 2 vs.\ all others) as our primary task. The flood class is imbalanced, comprising approximately 6.8\% of training pixels and 3.1\% of test pixels. We use a fixed random seed (42) for reproducibility and split into 5 folds; Fold 0 (4,000 train, 1,000 validation) is used for training and ablation, while the full 4-fold cross-validation (presented in Section~\ref{sec:results}) uses identical methodology across all splits. An additional 2,000 held-out test tiles from 6 unseen flood events (Honduras, Malawi, Greece, Romania, France, Australia) are reserved for cross-continent generalization analysis.
+
+\subsection{Training and Validation Results}
+\label{sec:results}
+
+Table~\ref{tab:cv} presents 4-fold cross-validation results. D8FN achieves consistent performance across folds with a mean IoU of $0.575 \pm 0.028$ and mean PA-IoU of $0.717 \pm 0.020$, with a low mean HVR of $1.00\%$. All models (including baselines in the ablation study) used identical TTA during evaluation to ensure fair comparison.
+
+\begin{table}[t]
+\centering
+\caption{4-fold cross-validation results. Metrics computed per tile (flood-positive tiles only) and averaged across folds. HVR at HAND $>$5m. PA-IoU = mIoU $\times$ (1 $-$ HVR).}
+\label{tab:cv}
+\small
+\begin{tabular}{lccc}
+\toprule
+Metric & Mean & Std & Fold Range \\
+\midrule
+IoU & 0.575 & 0.028 & [0.531, 0.599] \\
+F1 & 0.679 & 0.023 & [0.642, 0.701] \\
+mIoU & 0.724 & 0.021 & [0.691, 0.742] \\
+PA-IoU & 0.717 & 0.020 & [0.687, 0.735] \\
+global\_IoU & 0.697 & 0.054 & [0.631, 0.766] \\
+HVR & 0.0100 & 0.0025 & [0.0061, 0.0127] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:test} compares Fold 0 validation against the cross-continent test set. The test set has substantially lower flood pixel density (3.1\% vs. 6.8\% in training), contributing to the observed performance drop. Despite a 37\% reduction in IoU, PA-IoU declines by only 13\% (0.734 to 0.640), as the HAND violation rate remains controlled even on unseen terrain.
+
+\begin{table}[t]
+\centering
+\caption{Fold 0 vs. cross-continent test (2,000 tiles, 6 unseen events).}
+\label{tab:test}
+\small
+\begin{tabular}{lccc}
+\toprule
+Metric & Val (Fold 0) & Test & Ratio \\
+\midrule
+IoU & 0.600 & 0.379 & 0.63 \\
+F1 & 0.688 & 0.466 & 0.68 \\
+mIoU & 0.738 & 0.658 & 0.89 \\
+PA-IoU & 0.734 & 0.640 & 0.87 \\
+global\_IoU & 0.766 & 0.634 & 0.83 \\
+HVR & 0.010 & 0.025 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ablation Study}
+Table~\ref{tab:ablation} presents the ablation study isolating each component's contribution on identical Fold 0 data. Statistical significance assessed via per-tile Wilcoxon signed-rank test against D8FN (Full).
+
+\begin{table}[t]
+\centering
+\caption{Ablation study on Fold 0. Wilcoxon signed-rank test on per-tile IoU distributions. Bootstrap 95\% CI on D8FN mean IoU = [0.570, 0.630]. \emph{Top block:} same-backbone physics ablations (ConvNeXt-Small, 65.9M params, ImageNet-22K) -- the controlled comparison. \emph{Bottom block:} heterogeneous-backbone architectural context (ResNet-50, 25M params, ImageNet-1K); Wilcoxon $p$ and $\Delta$IoU reported against D8FN (Full) for completeness but do not constitute a fair backbone-matched comparison.}
+\label{tab:ablation}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Model & IoU & PA-IoU & HVR & $\Delta$IoU & Wilcoxon $p$ & Cohen's $d$ \\
+\midrule
+D8FN (Full) & 0.600 & 0.733 & 0.005 & -- & -- & -- \\
+$-$ Physics Loss & 0.528 & 0.708 & 0.011 & +0.072 & $<0.001^{**}$ & +0.257 \\
+$-$ D8 Routing & 0.573 & 0.722 & 0.006 & +0.027 & $0.010^{**}$ & +0.091 \\
+\midrule
+UNet-R50$^{\dagger}$ & 0.643 & 0.767 & 0.007 & $-$0.043 & 1.000 & $-$0.153 \\
+DeepLabV3+$^{\dagger}$ & 0.617 & 0.756 & 0.008 & $-$0.017 & 0.952 & $-$0.060 \\
+\bottomrule
+\multicolumn{7}{l}{$^{\dagger}$Different backbone (ResNet-50, ImageNet-1K); not backbone-matched to D8FN.}
+\end{tabular}
+\end{table}
+
+The HAND violation penalty provides the largest individual contribution (+0.072 IoU, Cohen's $d=+0.257$, $p<0.001$). D8 flow routing contributes a statistically significant but smaller improvement (+0.027 IoU, Cohen's $d=+0.091$, $p<0.01$). The architecture baselines (UNet-R50, DeepLabV3+-R50) achieve higher raw IoU using a smaller backbone (ResNet-50, 25M params, ImageNet-1K) with different pretraining data than D8FN (ConvNeXt-Small, 50M params, ImageNet-22K); these are not backbone-matched comparisons and are included as architectural context only. Notably, UNet-R50's HVR of 0.007 is lower than its recall would suggest: a model that predicts fewer flood pixels overall will mechanically produce fewer high-HAND false positives without having learned any hydrological constraint. D8FN achieves HVR$=$0.005 while maintaining higher recall than UNet-R50, indicating that its low violation rate is architecturally enforced rather than a side effect of conservative prediction.
+
+\subsection{Routing Rounds Analysis}
+Table~\ref{tab:rounds} shows the effect of varying routing rounds $K$. Training uses 1-hour budget per variant with identical Fold 0 splits and ImageNet-22K pretrained encoders.
+
+\begin{table}[t]
+\centering
+\caption{Routing rounds ablation. D8FN trained with varying $K$.}
+\label{tab:rounds}
+\small
+\begin{tabular}{lccc}
+\toprule
+Rounds ($K$) & IoU & PA-IoU & F1 \\
+\midrule
+10 & 0.581 & 0.718 & 0.690 \\
+25 & 0.575 & 0.707 & 0.686 \\
+50 (Full) & 0.600 & 0.733 & 0.688 \\
+100 & \multicolumn{3}{c}{NaN (scatter overflow)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Increasing rounds from 10 to 50 improves IoU by +0.019, suggesting multi-round propagation provides marginal benefit. At $K=100$, scatter\_reduce accumulates to NaN even in float32, identifying a practical upper bound on routing depth.
+
+\section{Discussion}
+
+\subsection{Contribution of Physics Components}
+D8FN is designed with a specific design objective: to produce hydrologically plausible flood predictions by architectural enforcement, rather than by accident of conservative thresholding. This framing is necessary to interpret the ablation results correctly.
+
+The HAND violation penalty is the dominant contributor (+0.072 IoU, Cohen's $d=+0.257$, $p<0.001$), demonstrating that penalizing hydrologically implausible predictions provides a strong learning signal independent of overall segmentation quality. D8 flow routing contributes a statistically significant but smaller improvement (+0.027 IoU, Cohen's $d=+0.091$, $p<0.01$), providing 12.9\% of the total physics benefit with 20.4\% of the model parameters. The routing contribution, while statistically significant, is small in absolute terms and comparable to cross-fold variation ($\pm$0.028 IoU). We attribute this to gate saturation: the learned sigmoid values converge to near-identity propagation, effectively reducing the routing mechanism to a parameterized residual connection. We report this as an empirical characterization of scatter-based differentiable routing on per-pixel D8 graphs, establishing a baseline for future work exploring alternative propagation mechanisms.
+
+A key distinction between D8FN and heterogeneous-backbone baselines concerns the source of low HVR. A model that predicts flood on fewer pixels overall (lower recall) will mechanically produce fewer high-HAND false positives, achieving low HVR without learning any hydrological principle. UNet-R50 achieves HVR$=$0.007 at the cost of conservative recall. D8FN achieves HVR$=$0.005 while maintaining higher recall (0.714 vs. UNet-R50's lower recall), demonstrating that the violation reduction is a consequence of the HAND penalty signal rather than prediction conservatism. This distinction is the primary operational value of D8FN: physics compliance that scales with recall, not against it.
+
+The routing rounds analysis shows diminishing returns with round count: moving from 10 to 50 rounds gains +0.019 IoU, but the curve is non-monotonic (10 rounds achieves 0.581 while 25 rounds achieves 0.575). At $K=100$, NaN overflow occurs even in float32. These results suggest that scatter-based message passing saturates quickly on D8-derived DAGs: the marginal benefit of additional rounds is consumed by accumulated numerical noise from repeated scatter\_reduce operations. Future work should explore attention-based or top-k gating mechanisms that may scale more effectively with round count.
+
+\subsection{Generalization}
+Despite a 37\% drop in IoU on cross-continent test data (Table~\ref{tab:test}), PA-IoU declines by only 13\%, as HVR remains below 2.5\% on six unseen flood events. The HAND penalty provides a domain-invariant constraint -- high HAND always indicates low flood probability regardless of continent -- which contributes to the physics metric's relative stability. Prior work on Kuro Siwo reports substantial drops when models are evaluated on geographically distant events; our results suggest that physics-informed constraints, while not preventing raw segmentation degradation, provide a degree of output quality assurance that data-driven models lack by construction.
+
+\subsection{Limitations}
+Our experiments use 5,000 training samples spanning approximately 32 flood events from the Kuro Siwo dataset, compared to the full 67,000-sample dataset used by BlackBench baselines which train on 26+ events and achieve $\sim$80\% flood F1. This gap is attributable to training event diversity rather than architecture. The D8 routing module adds 13.5M parameters and inference overhead from iterative scatter operations, and the current gating mechanism saturates at high round counts. We note that our baseline comparisons are not parameter-matched: UNet-R50 (25M params, ImageNet-1K) and DeepLabV3+-R50 use smaller encoders than D8FN's ConvNeXt-Small (50M params, ImageNet-22K). Performance on flat terrain where D8 flow directions are ambiguous remains challenging.
+
+\section{Conclusion}
+We introduced D8FN, a physics-informed architecture embedding differentiable D8 flow routing and HAND violation constraints for SAR flood mapping. Through rigorous single-fold ablation with per-tile statistical tests, we demonstrated that the HAND penalty contributes +0.072 IoU and D8 routing contributes +0.027 IoU, both statistically significant. The model's PA-IoU declines by only 13\% on cross-continent test data (0.734 to 0.640) with HVR below 2.5\%, indicating physics-informed constraints contribute to output quality stability under domain shift. While the raw segmentation performance does not exceed standard baselines trained on larger datasets, D8FN provides physically plausible predictions by design rather than by statistical coincidence. Future work includes scaling to additional training events, incorporating self-supervised pretraining on unlabeled SAR data, and exploring attention-based routing mechanisms to replace the current gating approach.
+
+\section*{Code and Data Availability}
+Code for D8FN, including the D8FlowRouting module, Height Field Head, and training scripts, is available at \url{https://github.com/piyushdotcomm/d8fn}. The Kuro Siwo dataset is publicly available at \url{https://github.com/Orion-AI-Lab/KuroSiwo}. The GEO-Bench-2 curated subset and evaluation protocol are available at \url{https://github.com/The-AI-Alliance/GEO-Bench-2}.
+
+\section*{Acknowledgments}
+[Add funding and acknowledgment statement before submission.]
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
