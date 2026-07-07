@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
+<defs>
+<linearGradient id="ig" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#4A90D9;stop-opacity:1"/>
+<stop offset="100%" style="stop-color:#357ABD;stop-opacity:1"/></linearGradient>
+<linearGradient id="eg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#5B6ABF;stop-opacity:1"/>
+<stop offset="100%" style="stop-color:#4A5AA6;stop-opacity:1"/></linearGradient>
+<linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#27AE60;stop-opacity:1"/>
+<stop offset="100%" style="stop-color:#1E8449;stop-opacity:1"/></linearGradient>
+<linearGradient id="dg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#E67E22;stop-opacity:1"/>
+<stop offset="100%" style="stop-color:#D35400;stop-opacity:1"/></linearGradient>
+<linearGradient id="og" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#E74C3C;stop-opacity:1"/>
+<stop offset="100%" style="stop-color:#C0392B;stop-opacity:1"/></linearGradient>
+<linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#8E44AD;stop-opacity:1"/>
+<stop offset="100%" style="stop-color:#6C3483;stop-opacity:1"/></linearGradient>
+<filter id="sh"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#00000033"/></filter>
+<filter id="gn"><feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#27AE60" flood-opacity="0.4"/></filter>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+<path d="M0,0 L10,5 L0,10 Z" fill="#555"/></marker>
+<marker id="arn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+<path d="M0,0 L10,5 L0,10 Z" fill="#27AE60"/></marker>
+</defs>
+<rect x="0" y="0" width="1200" height="750" fill="#FAFBFC" rx="10"/>
+<text x="600" y="35" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="20" font-weight="bold" fill="#2C3E50">D8FN: Differentiable D8 Flow Graph Network</text>
+<text x="600" y="55" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="13" fill="#7F8C8D">Overall Framework Architecture with Novel D8FlowRouting Layer</text>
+<line x1="200" y1="65" x2="1000" y2="65" stroke="#E0E0E0" stroke-width="1"/>
+<g filter="url(#sh)"><rect x="40" y="95" width="220" height="145" rx="10" fill="url(#ig)"/>
+<text x="150" y="118" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="14" font-weight="bold" fill="#fff">Multi-Modal Input</text>
+<line x1="65" y1="126" x2="235" y2="126" stroke="#ffffff33" stroke-width="1"/>
+<text x="65" y="148" font-family="monospace" font-size="11" fill="#E8F4FD">SAR VV/VH (4ch)</text>
+<text x="65" y="166" font-family="monospace" font-size="11" fill="#E8F4FD">DEM (1ch)</text>
+<text x="65" y="184" font-family="monospace" font-size="11" fill="#E8F4FD">HAND (1ch)</text>
+<text x="65" y="202" font-family="monospace" font-size="11" fill="#E8F4FD">Slope (1ch)</text>
+<text x="65" y="220" font-family="monospace" font-size="11" fill="#E8F4FD">Flow Dir+Acc (2ch)</text>
+</g>
+<line x1="260" y1="145" x2="340" y2="145" stroke="#555" stroke-width="2" marker-end="url(#ar)"/>
+<g filter="url(#sh)"><rect x="345" y="95" width="200" height="145" rx="10" fill="url(#eg)"/>
+<text x="445" y="118" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="14" font-weight="bold" fill="#fff">ConvNeXt Encoder</text>
+<line x1="370" y1="126" x2="520" y2="126" stroke="#ffffff33" stroke-width="1"/>
+<text x="360" y="148" font-family="monospace" font-size="11" fill="#E8E8F8">Stem Conv (8->3)</text>
+<text x="360" y="166" font-family="monospace" font-size="11" fill="#E8E8F8">Stage 1-4 Downsample</text>
+<text x="360" y="184" font-family="monospace" font-size="11" fill="#E8E8F8">L=3,3,9,3 Blocks</text>
+<text x="360" y="202" font-family="monospace" font-size="11" fill="#E8E8F8">LayerNorm + GRN</text>
+<text x="360" y="220" font-family="monospace" font-size="11" fill="#E8E8F8">Output: 7x7x768</text>
+</g>
+<line x1="545" y1="145" x2="645" y2="145" stroke="#27AE60" stroke-width="2.5" marker-end="url(#arn)"/>
+<rect x="735" y="78" width="60" height="18" rx="3" fill="#27AE60"/>
+<text x="765" y="91" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="9" font-weight="bold" fill="#fff">NOVEL</text>
+<g filter="url(#gn)"><rect x="648" y="85" width="250" height="165" rx="12" fill="url(#ng)" stroke="#27AE60" stroke-width="2"/></g>
+<rect x="648" y="85" width="250" height="165" rx="12" fill="url(#ng)"/>
+<text x="773" y="112" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="14" font-weight="bold" fill="#fff">D8 Flow Routing Layer</text>
+<line x1="673" y1="120" x2="873" y2="120" stroke="#ffffff33" stroke-width="1"/>
+<text x="663" y="140" font-family="monospace" font-size="10" fill="#D5F5E3">Input: (B, 768, 7, 7)</text>
+<text x="663" y="158" font-family="monospace" font-size="10" fill="#D5F5E3">|- Gate Network (Sigmoid)</text>
+<text x="663" y="176" font-family="monospace" font-size="10" fill="#D5F5E3">|- D8 Graph Construction</text>
+<text x="663" y="194" font-family="monospace" font-size="10" fill="#D5F5E3">|- scatter_add Propagation</text>
+<text x="663" y="212" font-family="monospace" font-size="10" fill="#D5F5E3">|- x50 Routing Rounds</text>
+<text x="663" y="230" font-family="monospace" font-size="10" fill="#D5F5E3">|- Residual Connection</text>
+<text x="663" y="248" font-family="monospace" font-size="10" fill="#D5F5E3">Output: (B, 768, 7, 7)</text>
+</g>
+<line x1="898" y1="145" x2="990" y2="145" stroke="#555" stroke-width="2" marker-end="url(#ar)"/>
+<g filter="url(#sh)"><rect x="992" y="95" width="180" height="145" rx="10" fill="url(#dg)"/>
+<text x="1082" y="118" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="14" font-weight="bold" fill="#fff">Progressive Decoder</text>
+<line x1="1017" y1="126" x2="1147" y2="126" stroke="#ffffff33" stroke-width="1"/>
+<text x="1005" y="148" font-family="monospace" font-size="11" fill="#FDEBD0">4x Transpose Conv</text>
+<text x="1005" y="166" font-family="monospace" font-size="11" fill="#FDEBD0">7->28->56->112</text>
+<text x="1005" y="184" font-family="monospace" font-size="11" fill="#FDEBD0">112->224 (x8 total)</text>
+<text x="1005" y="202" font-family="monospace" font-size="11" fill="#FDEBD0">Skip Connections x4</text>
+<text x="1005" y="220" font-family="monospace" font-size="11" fill="#FDEBD0">Output: 224x224x128</text>
+</g>
+<line x1="1082" y1="240" x2="1082" y2="315" stroke="#555" stroke-width="2" marker-end="url(#ar)"/>
+<g filter="url(#sh)"><rect x="942" y="318" width="280" height="135" rx="10" fill="url(#og)"/>
+<text x="1082" y="343" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="14" font-weight="bold" fill="#fff">Neural Height Field Head</text>
+<line x1="967" y1="351" x2="1197" y2="351" stroke="#ffffff33" stroke-width="1"/>
+<text x="955" y="371" font-family="monospace" font-size="10" fill="#FADBD8">Fourier Pos Encoding (2->42)</text>
+<text x="955" y="389" font-family="monospace" font-size="10" fill="#FADBD8">MLP: 172->256->128->64->1</text>
+<text x="955" y="407" font-family="monospace" font-size="10" fill="#FADBD8">Water Height: H_w = MLP(feat,coord,DEM)</text>
+<text x="955" y="425" font-family="monospace" font-size="10" fill="#FADBD8">Flood Logit: (H_w - DEM) / tau</text>
+</g>
+<line x1="1082" y1="453" x2="1082" y2="485" stroke="#555" stroke-width="2" marker-end="url(#ar)"/>
+<g filter="url(#sh)"><rect x="942" y="485" width="280" height="70" rx="10" fill="#2C3E50"/>
+<text x="1082" y="508" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="13" font-weight="bold" fill="#fff">Joint Outputs</text>
+<line x1="967" y1="516" x2="1197" y2="516" stroke="#ffffff33" stroke-width="1"/>
+<text x="955" y="536" font-family="monospace" font-size="11" fill="#ECF0F1">Flood Extent: sigmoid(H_w - DEM) > 0.5</text>
+<text x="955" y="552" font-family="monospace" font-size="11" fill="#ECF0F1">Water Depth: max(0, H_w - DEM)</text>
+</g>
+<g filter="url(#sh)"><rect x="30" y="590" width="1140" height="145" rx="10" fill="url(#lg)"/>
+<text x="600" y="615" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="14" font-weight="bold" fill="#fff">Multi-Objective Physics-Constrained Loss</text>
+<line x1="55" y1="623" x2="1145" y2="623" stroke="#ffffff33" stroke-width="1"/>
+<rect x="55" y="635" width="155" height="38" rx="6" fill="#ffffff22"/>
+<text x="132" y="650" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#fff">BCE</text>
+<text x="132" y="665" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8DAEF">Binary cross-entropy</text>
+<rect x="218" y="635" width="155" height="38" rx="6" fill="#ffffff22"/>
+<text x="295" y="650" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#fff">Dice</text>
+<text x="295" y="665" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8DAEF">Overlap coefficient</text>
+<rect x="381" y="635" width="155" height="38" rx="6" fill="#ffffff22"/>
+<text x="458" y="650" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#fff">Height</text>
+<text x="458" y="665" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8DAEF">H_w >= DEM for flood</text>
+<rect x="544" y="635" width="175" height="38" rx="6" fill="#2ECC7133"/>
+<rect x="544" y="635" width="175" height="38" rx="6" fill="none" stroke="#2ECC71" stroke-width="1.5"/>
+<text x="631" y="650" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#fff">Flow Dir Derivative</text>
+<text x="631" y="665" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8DAEF">dH/ds < 0 (NOVEL)</text>
+<rect x="727" y="635" width="155" height="38" rx="6" fill="#ffffff22"/>
+<text x="804" y="650" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#fff">Continuity</text>
+<text x="804" y="665" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8DAEF">Flow acc ~ height</text>
+<rect x="890" y="635" width="130" height="38" rx="6" fill="#ffffff22"/>
+<text x="955" y="650" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#fff">Regularization</text>
+<text x="955" y="665" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8DAEF">Smooth + Focal</text>
+<rect x="55" y="683" width="965" height="42" rx="6" fill="#ffffff15"/>
+<text x="537" y="700" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="11" fill="#fff">L_total = L_bce + L_dice + L_height + <tspan fill="#2ECC71" font-weight="bold">5.0 x L_flow</tspan> + L_cont + L_smooth + 0.5 x L_focal + L_physics</text>
+<text x="537" y="718" text-anchor="middle" font-family="monospace" font-size="9" fill="#D2B4DE">where L_flow = ReLU(grad(H_w) * flow_dir) penalizes water flowing uphill (differentiable D8 directional derivative)</text>
+</g>
+<path d="M1082,555 L1082,590" stroke="#8E44AD" stroke-width="1.5" marker-end="url(#ar)" fill="none"/>
+<path d="M60,555 L60,450 L135,450 L135,455" stroke="#8E44AD" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#ar)" fill="none"/>
+<text x="80" y="500" font-family="Helvetica,sans-serif" font-size="9" fill="#8E44AD" transform="rotate(-90,80,500)">Ground Truth Supervision</text>
+<path d="M150,240 L150,290 L773,290 L773,250" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ar)" fill="none"/>
+<text x="460" y="286" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="9" fill="#777">DEM -> D8 Flow Graph</text>
+<rect x="40" y="465" width="230" height="92" rx="6" fill="#F8F9FA" stroke="#E0E0E0" stroke-width="1"/>
+<text x="50" y="483" font-family="Helvetica,sans-serif" font-size="10" font-weight="bold" fill="#555">Legend</text>
+<rect x="50" y="491" width="12" height="12" rx="2" fill="#27AE60"/>
+<text x="68" y="502" font-family="Helvetica,sans-serif" font-size="9" fill="#666">Novel D8 Flow Routing Layer</text>
+<rect x="50" y="509" width="12" height="12" rx="2" fill="#3498DB"/>
+<text x="68" y="520" font-family="Helvetica,sans-serif" font-size="9" fill="#666">Existing Components</text>
+<line x1="50" y1="533" x2="62" y2="533" stroke="#8E44AD" stroke-width="1.5" stroke-dasharray="4,2"/>
+<text x="68" y="537" font-family="Helvetica,sans-serif" font-size="9" fill="#666">Supervision Signal</text>
+<line x1="50" y1="549" x2="62" y2="549" stroke="#555" stroke-width="1.5"/>
+<text x="68" y="553" font-family="Helvetica,sans-serif" font-size="9" fill="#666">Data Flow</text>
+</svg>
