@@ -1,0 +1,76 @@
+{
+  "experiment": "D8FN_v3_Full_Physics",
+  "description": "D8FN v3 4-fold CV on Kuro Siwo processed_v4 (5000 samples, 5 training events)",
+  "date": "2026-07-03",
+  "data": "5000 samples (4000 train, 1000 val per fold)",
+  "architecture": "D8FN (ConvNeXt-Small + D8FlowRouting + HeightFieldHead), 66.5M params",
+  "training": "30 epochs, GradScaler+float32, EMA decay=0.999, TTA 3x, patience=12",
+  "metrics": {
+    "IoU": {
+      "mean": 0.5809,
+      "std": 0.0243,
+      "min": 0.5437,
+      "max": 0.6036
+    },
+    "F1": {
+      "mean": 0.6861,
+      "std": 0.0212,
+      "min": 0.6527,
+      "max": 0.7051
+    },
+    "Precision": {
+      "mean": 0.7256,
+      "std": 0.0208,
+      "min": 0.7030,
+      "max": 0.7464
+    },
+    "Recall": {
+      "mean": 0.7146,
+      "std": 0.0220,
+      "min": 0.6771,
+      "max": 0.7329
+    },
+    "mIoU": {
+      "mean": 0.7293,
+      "std": 0.0173,
+      "min": 0.7016,
+      "max": 0.7454
+    },
+    "Kappa": {
+      "mean": 0.6136,
+      "std": 0.0278,
+      "min": 0.5674,
+      "max": 0.6375
+    },
+    "Betti0_Err": {
+      "mean": 5.5085,
+      "std": 0.3618,
+      "min": 5.0363,
+      "max": 6.0389
+    },
+    "Betti1_Err": {
+      "mean": 4.0928,
+      "std": 0.2316,
+      "min": 3.8462,
+      "max": 4.4690
+    },
+    "HVR": {
+      "mean": 0.0107,
+      "std": 0.0030,
+      "min": 0.0058,
+      "max": 0.0138
+    },
+    "PA_IoU": {
+      "mean": 0.7216,
+      "std": 0.0155,
+      "min": 0.6978,
+      "max": 0.7366
+    }
+  },
+  "per_fold": {
+    "fold_0": {"IoU": 0.6036, "F1": 0.7051, "PA_IoU": 0.7366},
+    "fold_1": {"IoU": 0.5437, "F1": 0.6527, "PA_IoU": 0.6978},
+    "fold_2": {"IoU": 0.5992, "F1": 0.7014, "PA_IoU": 0.7342},
+    "fold_3": {"IoU": 0.5704, "F1": 0.6780, "PA_IoU": 0.7133}
+  }
+}
