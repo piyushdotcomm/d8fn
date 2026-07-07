@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+<defs>
+<linearGradient id="bg"><stop offset="0%" style="stop-color:#27AE60;stop-opacity:1"/><stop offset="100%" style="stop-color:#1E8449;stop-opacity:1"/></linearGradient>
+<linearGradient id="bb"><stop offset="0%" style="stop-color:#3498DB;stop-opacity:1"/><stop offset="100%" style="stop-color:#2980B9;stop-opacity:1"/></linearGradient>
+<filter id="sh"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#00000033"/></filter>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M0,0 L10,5 L0,10 Z" fill="#555"/></marker>
+</defs>
+<rect x="0" y="0" width="800" height="500" fill="#FAFBFC" rx="8"/>
+<text x="400" y="30" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="16" font-weight="bold" fill="#2C3E50">D8 Flow Routing Layer - Module Detail</text>
+<line x1="150" y1="40" x2="650" y2="40" stroke="#E0E0E0" stroke-width="1"/>
+
+<!-- Input -->
+<g filter="url(#sh)"><rect x="20" y="60" width="140" height="50" rx="8" fill="url(#bb)"/></g>
+<text x="90" y="82" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#fff">Features</text>
+<text x="90" y="98" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8F4FD">(B, C, H, W)</text>
+<line x1="160" y1="85" x2="195" y2="85" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/>
+
+<!-- Gate Network box -->
+<g filter="url(#sh)"><rect x="200" y="55" width="180" height="120" rx="8" fill="url(#bg)"/></g>
+<text x="290" y="75" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="#fff">Gate Network</text>
+<line x1="215" y1="83" x2="365" y2="83" stroke="#ffffff33" stroke-width="1"/>
+<text x="210" y="100" font-family="monospace" font-size="9" fill="#D5F5E3">Input: feat + DEM + slope</text>
+<text x="210" y="116" font-family="monospace" font-size="9" fill="#D5F5E3">Conv2D(3x3) + BN + SiLU x3</text>
+<text x="210" y="132" font-family="monospace" font-size="9" fill="#D5F5E3">Conv2D(1x1) + Sigmoid</text>
+<text x="210" y="148" font-family="monospace" font-size="9" fill="#D5F5E3">Output: gates in [0, 1]</text>
+<text x="210" y="164" font-family="monospace" font-size="8" fill="#A9DFBF">controls what fraction flows</text>
+
+<!-- Arrow down -->
+<line x1="290" y1="175" x2="290" y2="210" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/>
+
+<!-- D8 Graph Construction -->
+<g filter="url(#sh)"><rect x="200" y="215" width="180" height="100" rx="8" fill="url(#bb)"/></g>
+<text x="290" y="238" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="#fff">D8 Graph Construction</text>
+<line x1="215" y1="246" x2="365" y2="246" stroke="#ffffff33" stroke-width="1"/>
+<text x="210" y="264" font-family="monospace" font-size="9" fill="#E8F4FD">From DEM: flow_dir (0-8)</text>
+<text x="210" y="280" font-family="monospace" font-size="9" fill="#E8F4FD">Each pixel -> downstream</text>
+<text x="210" y="296" font-family="monospace" font-size="9" fill="#E8F4FD">D8 graph = forest of chains</text>
+
+<!-- Arrow right -->
+<line x1="380" y1="265" x2="415" y2="265" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/>
+
+<!-- scatter_add Propagation -->
+<g filter="url(#sh)"><rect x="420" y="60" width="180" height="255" rx="8" fill="url(#bg)"/></g>
+<text x="510" y="82" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="#fff">Flow Propagation</text>
+<line x1="435" y1="90" x2="585" y2="90" stroke="#ffffff33" stroke-width="1"/>
+<text x="430" y="108" font-family="monospace" font-size="9" fill="#D5F5E3">for round in range(K):</text>
+<text x="430" y="126" font-family="monospace" font-size="9" fill="#D5F5E3">  flow = gates * features</text>
+<text x="430" y="144" font-family="monospace" font-size="9" fill="#D5F5E3">  idx = downstream[pixel]</text>
+<text x="430" y="162" font-family="monospace" font-size="9" fill="#D5F5E3">  downstream_features</text>
+<text x="430" y="178" font-family="monospace" font-size="9" fill="#D5F5E3">    = scatter_add(flow, idx)</text>
+<text x="430" y="196" font-family="monospace" font-size="9" fill="#D5F5E3">  features += downstream</text>
+<line x1="435" y1="208" x2="585" y2="208" stroke="#ffffff33" stroke-width="1"/>
+<text x="510" y="228" text-anchor="middle" font-family="monospace" font-size="9" font-weight="bold" fill="#D5F5E3">Key Properties:</text>
+<text x="430" y="246" font-family="monospace" font-size="8" fill="#A9DFBF">- O(N) per round (N = pixels)</text>
+<text x="430" y="262" font-family="monospace" font-size="8" fill="#A9DFBF">- K=50 rounds = full basin</text>
+<text x="430" y="278" font-family="monospace" font-size="8" fill="#A9DFBF">- Fully differentiable</text>
+<text x="430" y="294" font-family="monospace" font-size="8" fill="#A9DFBF">- Topological inductive bias</text>
+<text x="430" y="310" font-family="monospace" font-size="8" fill="#A9DFBF">- implement via scatter_add_</text>
+
+<!-- Arrow right to output -->
+<line x1="600" y1="175" x2="635" y2="175" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/>
+
+<!-- Output -->
+<g filter="url(#sh)"><rect x="640" y="145" width="140" height="60" rx="8" fill="url(#bb)"/></g>
+<text x="710" y="170" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="#fff">Routed Features</text>
+<text x="710" y="190" text-anchor="middle" font-family="monospace" font-size="9" fill="#E8F4FD">(B, C, H, W)</text>
+
+<!-- Comparison bottom -->
+<rect x="20" y="340" width="760" height="145" rx="8" fill="#F0F3F4" stroke="#D5D8DC" stroke-width="1"/>
+<text x="400" y="362" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="13" font-weight="bold" fill="#2C3E50">Comparison: Standard Conv vs. D8 Flow Routing</text>
+<line x1="40" y1="370" x2="760" y2="370" stroke="#D5D8DC" stroke-width="1"/>
+
+<!-- Conv box -->
+<rect x="40" y="380" width="340" height="95" rx="6" fill="#fff" stroke="#E0E0E0" stroke-width="1"/>
+<text x="210" y="400" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="11" font-weight="bold" fill="#E74C3C">Standard Convolution (U-Net)</text>
+<text x="50" y="418" font-family="monospace" font-size="9" fill="#555">- Isotropic: processes all directions equally</text>
+<text x="50" y="434" font-family="monospace" font-size="9" fill="#555">- No notion of flow topology</text>
+<text x="50" y="450" font-family="monospace" font-size="9" fill="#555">- Wastes capacity learning water flows downhill</text>
+<text x="50" y="466" font-family="monospace" font-size="9" fill="#555">- Requires large data to infer flow patterns</text>
+
+<!-- D8FN box -->
+<rect x="420" y="380" width="340" height="95" rx="6" fill="#E8F8F5" stroke="#27AE60" stroke-width="1.5"/>
+<text x="590" y="400" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="11" font-weight="bold" fill="#27AE60">D8 Flow Routing (D8FN - Ours)</text>
+<text x="430" y="418" font-family="monospace" font-size="9" fill="#1E8449">- Anisotropic: features follow D8 flow paths</text>
+<text x="430" y="434" font-family="monospace" font-size="9" fill="#1E8449">- Encodes hydrology as inductive bias</text>
+<text x="430" y="450" font-family="monospace" font-size="9" fill="#1E8449">- Only propagates where water can flow</text>
+<text x="430" y="466" font-family="monospace" font-size="9" fill="#1E8449">- More efficient: O(N) vs O(N) but correct</text>
+
+</svg>
