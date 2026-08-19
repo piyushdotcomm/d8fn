@@ -201,7 +201,8 @@ If you use D8FN in your research, please cite:
 
 ## Authors
 
-- **Piyush Kumar** — School of Computer Science, VIT Vellore, India
-- **Manas Ranjan Prusty** — School of Computer Science, VIT Vellore, India
+- **Piyush Kumar** — School of Computer Science, VIT Chennai, India
+- - **Jay Gopal Tripathy** — School of Computer Science, VIT Chennai, India
+- **Manas Ranjan Prusty** — School of Computer Science, VIT Chennai, India
 
-Correspondence: piyush.kumar@vit.ac.in
+
